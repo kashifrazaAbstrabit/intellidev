@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                           Int       @id @default(autoincrement())
+  first_name                   String?
+  last_name                    String?
+  email                        String    @unique
+  password                     String? // Nullable for users signing up via Google or GitHub
+  status                       String    @default("inactive")
+  country                      String?
+  reset_password_token         String?
+  reset_password_token_expires DateTime?
+  refreshtoken                 String?
+  verification_token           String?
+  verification_token_expiry    DateTime?
+  user_type                    UserType  @default(client)
+  auth_type                    AuthType  @default(email)
+  last_login_at                DateTime  @default(now())
+  is_verified                  Boolean   @default(false)
+  created_at                   DateTime  @default(now())
+  updated_at                   DateTime  @updatedAt
+  color                        String    @default("")
+
+  oauth          UserOAuth[]
+  invite_users   InviteUser[]
+  clients        ClientDeveloper[] @relation("ClientToDevelopers") // Developers for this client
+  developers     ClientDeveloper[] @relation("DeveloperToClients") // Clients for this developer
+  projects       Project[]         @relation("ClientProjects") // Projects created by the client
+  AssignedPeople AssignedPeople[]
+
+  @@index([email])
+  @@index([status])
+}
+
+enum UserType {
+  client
+  developer
+}
+
+enum AuthType {
+  email
+  google
+  github
+}
+
+model UserOAuth {
+  id               Int      @id @default(autoincrement())
+  user_id          Int
+  provider         Provider
+  provider_user_id String
+  user             User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  @@unique([user_id, provider]) // Ensure that each user can only have one OAuth record per provider
+}
+
+enum Provider {
+  google
+  github
+}
+
+model InviteUser {
+  id                Int       @id @default(autoincrement())
+  email             String    @unique // Email used to invite the developer
+  user_id           Int // The ID of the user who invited this developer
+  user              User      @relation(fields: [user_id], references: [id], onDelete: Cascade) // Link to the user
+  invitation_token  String?   @unique
+  invitation_expiry DateTime?
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+}
+
+model ClientDeveloper {
+  id           Int      @id @default(autoincrement())
+  client_id    Int // Foreign key to the client
+  developer_id Int // Foreign key to the developer
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  client    User @relation("ClientToDevelopers", fields: [client_id], references: [id], onDelete: Cascade)
+  developer User @relation("DeveloperToClients", fields: [developer_id], references: [id], onDelete: Cascade)
+
+  @@unique([client_id, developer_id]) // Ensure that a developer is not associated with the same client multiple times
+}
+
+model Project {
+  id              Int              @id @default(autoincrement())
+  name            String
+  description     String?
+  start_date      DateTime?        @default(now()) // Allow NULL for optional start_date
+  status          ProjectStatus    @default(under_discuss)
+  client_id       Int
+  client          User             @relation("ClientProjects", fields: [client_id], references: [id], onDelete: Cascade)
+  assigned_people AssignedPeople[] // Developers assigned to the project
+  created_at      DateTime         @default(now())
+  updated_at      DateTime         @updatedAt
+
+  @@index([status])
+}
+
+enum ProjectStatus {
+  under_discuss
+  completed
+  suspended
+  maintenance
+  in_development
+}
+
+model AssignedPeople {
+  id           Int      @id @default(autoincrement())
+  project_id   Int // Project to which the developer is assigned
+  developer_id Int // Developer assigned to the project
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  project   Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  developer User    @relation(fields: [developer_id], references: [id], onDelete: Cascade)
+
+  @@unique([project_id, developer_id]) // Prevent assigning the same developer multiple times to a project
+}
