@@ -387,20 +387,28 @@ export const login = async (
       expires: Date;
       secure: boolean;
       httpOnly: boolean;
+      sameSite: "strict" | "lax" | "none";
     } = {
-      expires: new Date(Date.now() + ms(accessTokenExpire as ms.StringValue)),
+      expires: new Date(
+        Date.now() + (ms(accessTokenExpire as ms.StringValue) || 0)
+      ), // Ensure it's a valid number
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
+      sameSite: "strict",
     };
 
     const optionsForRefreshToken: {
       expires: Date;
       secure: boolean;
       httpOnly: boolean;
+      sameSite: "strict" | "lax" | "none";
     } = {
-      expires: new Date(Date.now() + ms(refreshTokenExpire as ms.StringValue)),
+      expires: new Date(
+        Date.now() + (ms(refreshTokenExpire as ms.StringValue) || 0)
+      ), // Ensure it's a valid number
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
+      sameSite: "none",
     };
 
     res

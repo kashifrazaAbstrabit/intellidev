@@ -30,20 +30,28 @@ export async function setTokensAndRedirect(
     expires: Date;
     secure: boolean;
     httpOnly: boolean;
+    sameSite: "strict" | "lax" | "none";
   } = {
-    expires: new Date(Date.now() + ms(accessTokenExpire as ms.StringValue)), // Convert "30m" to milliseconds
+    expires: new Date(
+      Date.now() + (ms(accessTokenExpire as ms.StringValue) || 0)
+    ),
     secure: process.env.NODE_ENV === "production",
     httpOnly: true,
+    sameSite: "strict",
   };
 
   const optionsForRefreshToken: {
     expires: Date;
     secure: boolean;
     httpOnly: boolean;
+    sameSite: "strict" | "lax" | "none";
   } = {
-    expires: new Date(Date.now() + ms(refreshTokenExpire as ms.StringValue)), // Convert "1d" to milliseconds
+    expires: new Date(
+      Date.now() + (ms(refreshTokenExpire as ms.StringValue) || 0)
+    ),
     secure: process.env.NODE_ENV === "production",
     httpOnly: true,
+    sameSite: "none",
   };
 
   res
