@@ -394,7 +394,7 @@ export const login = async (
       ), // Ensure it's a valid number
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
-      sameSite: "strict",
+      sameSite: "none",
     };
 
     const optionsForRefreshToken: {
@@ -463,7 +463,7 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
     const options = {
       httpOnly: true,
       secure: true,
-      sameSite: "Strict",
+      sameSite: "none",
     };
 
     res
@@ -471,12 +471,12 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
       .clearCookie("accessToken", {
         ...options,
         maxAge: 0,
-        sameSite: "strict",
+        sameSite: "none",
       })
       .clearCookie("refreshToken", {
         ...options,
         maxAge: 0,
-        sameSite: "strict",
+        sameSite: "none",
       })
       .json({
         success: true,
@@ -540,24 +540,46 @@ export const refreshAccessToken = async (
       user.id
     );
 
-    const options = {
+    const accessTokenExpire = process.env.ACCESS_TOKEN_EXPIRE || "30m";
+    const refreshTokenExpire = process.env.REFRESH_TOKEN_EXPIRE || "1d";
+
+    if (!accessTokenExpire || !refreshTokenExpire) {
+      throw new Error(
+        "Environment variables for token expiration are not defined."
+      );
+    }
+
+    const optionsForAccessToken: {
+      expires: Date;
+      secure: boolean;
+      httpOnly: boolean;
+      sameSite: "strict" | "lax" | "none";
+    } = {
+      expires: new Date(
+        Date.now() + (ms(accessTokenExpire as ms.StringValue) || 0)
+      ), // Ensure it's a valid number
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Secure only in production
-      sameSite: "Strict",
+      sameSite: "none",
     };
 
+    const optionsForRefreshToken: {
+      expires: Date;
+      secure: boolean;
+      httpOnly: boolean;
+      sameSite: "strict" | "lax" | "none";
+    } = {
+      expires: new Date(
+        Date.now() + (ms(refreshTokenExpire as ms.StringValue) || 0)
+      ), // Ensure it's a valid number
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      sameSite: "none",
+    };
     res
       .status(200)
-      .cookie("accessToken", accessToken, {
-        ...options,
-        maxAge: 30 * 60 * 1000,
-        sameSite: "strict",
-      }) // 30 minutes
-      .cookie("refreshToken", refreshToken, {
-        ...options,
-        maxAge: 24 * 60 * 60 * 1000,
-        sameSite: "strict",
-      }) // 1 days
+      .cookie("accessToken", accessToken, optionsForAccessToken)
+      .cookie("refreshToken", refreshToken, optionsForRefreshToken)
       .json({
         success: true,
         message: "Access token refreshed",

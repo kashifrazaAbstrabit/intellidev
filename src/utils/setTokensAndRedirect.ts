@@ -37,7 +37,7 @@ export async function setTokensAndRedirect(
     ),
     secure: process.env.NODE_ENV === "production",
     httpOnly: true,
-    sameSite: "strict",
+    sameSite: "none",
   };
 
   const optionsForRefreshToken: {
