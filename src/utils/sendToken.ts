@@ -16,7 +16,7 @@ export const generateAccessToken = async (user: { id: number }) => {
         id: user.id,
       },
       jwtSecret,
-      { expiresIn: process.env.ACCESS_TOKEN_EXPIRE || "15m" },
+      { expiresIn: process.env.ACCESS_TOKEN_EXPIRE ? parseInt(process.env.ACCESS_TOKEN_EXPIRE) : "15m" },
       (err, token) => {
         if (err) return reject(err);
         resolve(token as string);
@@ -34,7 +34,7 @@ const generateRefreshToken = async (user: { id: number }) => {
     );
   }
 
-  const expiresIn = process.env.REFRESH_TOKEN_EXPIRE || "1d"; 
+  const expiresIn = process.env.REFRESH_TOKEN_EXPIRE ? parseInt(process.env.REFRESH_TOKEN_EXPIRE) : "1d"; 
 
   return new Promise<string>((resolve, reject) => {
     jwt.sign({ id: user.id }, jwtSecret, { expiresIn }, (err, token) => {

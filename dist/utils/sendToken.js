@@ -23,7 +23,7 @@ const generateAccessToken = (user) => __awaiter(void 0, void 0, void 0, function
     return new Promise((resolve, reject) => {
         jsonwebtoken_1.default.sign({
             id: user.id,
-        }, jwtSecret, { expiresIn: process.env.ACCESS_TOKEN_EXPIRE || "15m" }, (err, token) => {
+        }, jwtSecret, { expiresIn: process.env.ACCESS_TOKEN_EXPIRE ? parseInt(process.env.ACCESS_TOKEN_EXPIRE) : "15m" }, (err, token) => {
             if (err)
                 return reject(err);
             resolve(token);
@@ -36,7 +36,7 @@ const generateRefreshToken = (user) => __awaiter(void 0, void 0, void 0, functio
     if (!jwtSecret) {
         throw new Error("REFRESH_TOKEN_SECRET is not defined in the environment variables.");
     }
-    const expiresIn = process.env.REFRESH_TOKEN_EXPIRE || "1d";
+    const expiresIn = process.env.REFRESH_TOKEN_EXPIRE ? parseInt(process.env.REFRESH_TOKEN_EXPIRE) : "1d";
     return new Promise((resolve, reject) => {
         jsonwebtoken_1.default.sign({ id: user.id }, jwtSecret, { expiresIn }, (err, token) => {
             if (err)

@@ -38,9 +38,9 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/express-session": "^1.18.1",
-    "@types/jsonwebtoken": "^9.0.7",
+    "@types/jsonwebtoken": "^9.0.8",
     "@types/ms": "^2.1.0",
-    "@types/node": "^22.10.5",
+    "@types/node": "^22.13.1",
     "@types/nodemailer": "^6.4.17",
     "@types/nodemon": "^1.19.6",
     "@types/passport": "^1.0.17",
@@ -50,5 +50,8 @@
     "express": "^4.21.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": "23.x"
   }
 }
