@@ -17,8 +17,6 @@ dotenv.config();
 //sever
 const app = express();
 
-//middleware
-app.use(cookieParser());
 app.use(
   cors({
     origin: [
@@ -36,9 +34,15 @@ app.use(
     secret: process.env.SESSION_SECRET || "defaultSecret",
     resave: false,
     saveUninitialized: false,
-    
+    cookie: {
+      httpOnly: true, // Prevents XSS attacks
+      secure: process.env.NODE_ENV === "production", // Secure in production
+      sameSite: "none", // Required for cross-origin cookies
+    },
   })
 );
+
+app.use(cookieParser());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
